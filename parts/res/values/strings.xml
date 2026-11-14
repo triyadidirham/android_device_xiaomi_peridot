@@ -81,4 +81,5 @@
     <string name="bypass_mode_navigation">Navigation</string>
     <string name="bypass_mode_tgame">TGame</string>
     <string name="bypass_mode_nolimit">No limit</string>
+    <string name="show_system_apps">Show system apps</string>
 </resources>
