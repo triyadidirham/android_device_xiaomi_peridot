@@ -32,6 +32,7 @@ import android.util.Log;
 import android.view.Display;
 
 import org.lineageos.settings.display.ColorModeService;
+import org.lineageos.settings.charge.BypassChargingUtils;
 import org.lineageos.settings.refreshrate.RefreshUtils;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
@@ -40,6 +41,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
+        BypassChargingUtils.restoreMode(context);
         if (DEBUG) Log.i(TAG, "Received intent: " + intent.getAction());
         switch (intent.getAction()) {
             case Intent.ACTION_LOCKED_BOOT_COMPLETED:

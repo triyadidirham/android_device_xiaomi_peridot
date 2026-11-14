@@ -68,4 +68,17 @@
     <string name="image_preview_next_page_content_description">Next</string>
     <string name="image_preview_previous_page_content_description">Previous</string>
     
+
+    <!-- Bypass charging (KamiOS peridot) -->
+    <string name="bypass_charging_title">Bypass charging</string>
+    <string name="bypass_charging_summary_off">Off — normal battery charging</string>
+    <string name="bypass_charging_summary_on">Active — running off adapter power</string>
+    <string name="bypass_charging_summary_pending">Switching…</string>
+    <string name="bypass_charging_summary_unavailable">Not supported on this kernel</string>
+    <string name="bypass_charging_tile_label">Bypass Chg</string>
+    <string name="bypass_mode_title">Bypass thermal mode</string>
+    <string name="bypass_mode_locked">%1$s — turn bypass off to change</string>
+    <string name="bypass_mode_navigation">Navigation</string>
+    <string name="bypass_mode_tgame">TGame</string>
+    <string name="bypass_mode_nolimit">No limit</string>
 </resources>

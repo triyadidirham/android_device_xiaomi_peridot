@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kernel bypass thermal modes -->
+    <string-array name="bypass_mode_entries">
+        <item>@string/bypass_mode_navigation</item>
+        <item>@string/bypass_mode_tgame</item>
+        <item>@string/bypass_mode_nolimit</item>
+    </string-array>
+    <string-array name="bypass_mode_values">
+        <item>navigation</item>
+        <item>tgame</item>
+        <item>nolimit</item>
+    </string-array>
+</resources>
