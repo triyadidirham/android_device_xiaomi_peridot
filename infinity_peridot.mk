@@ -16,6 +16,13 @@ $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 # Inherit from peridot device
 $(call inherit-product, device/xiaomi/peridot/device.mk)
 
+
+# Use the peridot external GameBar as the sole game overlay.
+PRODUCT_PACKAGES -= \
+    GameSpace
+
+$(call inherit-product, packages/apps/GameBar/gamebar.mk)
+
 # Infinity baseline flags (device stack remains pure crDroid)
 TARGET_BOOT_ANIMATION_RES := 1080
 TARGET_SUPPORTS_QUICK_TAP := true
