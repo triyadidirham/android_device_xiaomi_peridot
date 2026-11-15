@@ -10,7 +10,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
 # Inherit some common Lineage stuff.
 WITH_GAPPS := false
-TARGET_EXCLUDES_GAMESPACE := true
 
 $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 
@@ -18,10 +17,7 @@ $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 $(call inherit-product, device/xiaomi/peridot/device.mk)
 
 
-# Use the peridot external GameBar as the sole game overlay.
-PRODUCT_PACKAGES -= \
-    GameSpace
-
+# Include both Infinity GameSpace and the peridot external GameBar.
 $(call inherit-product, packages/apps/GameBar/gamebar.mk)
 
 # Infinity baseline flags (device stack remains pure crDroid)
