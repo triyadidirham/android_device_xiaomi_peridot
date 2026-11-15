@@ -13,10 +13,6 @@ WITH_GAPPS := false
 
 $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 
-# Indonesia fallback regulatory domain; Android may update it from telephony.
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.boot.wificountrycode=ID
-
 # Inherit from peridot device
 $(call inherit-product, device/xiaomi/peridot/device.mk)
 
