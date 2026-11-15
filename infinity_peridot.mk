@@ -10,6 +10,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
 # Inherit some common Lineage stuff.
 WITH_GAPPS := false
+TARGET_EXCLUDES_GAMESPACE := true
 
 $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 
