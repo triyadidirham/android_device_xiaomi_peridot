@@ -69,7 +69,13 @@
     <string name="image_preview_previous_page_content_description">Previous</string>
     
 
-    <!-- Bypass charging (KamiOS peridot) -->
+    <!-- Charge control -->
+    <string name="charge_control_title">Charge control</string>
+    <string name="charge_control_summary">Charge limits, schedules, and adapter bypass</string>
+    <string name="system_charge_control_title">Charge limit and schedule</string>
+    <string name="system_charge_control_summary">Managed by Android battery settings and Lineage Health</string>
+
+    <!-- Bypass charging (KamiOS/XPerience peridot reference) -->
     <string name="bypass_charging_title">Bypass charging</string>
     <string name="bypass_charging_summary_off">Off — normal battery charging</string>
     <string name="bypass_charging_summary_on">Active — running off adapter power</string>
