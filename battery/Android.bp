@@ -1,0 +1,14 @@
+cc_binary {
+    name: "peridot-charging",
+    vendor: true,
+    srcs: ["charging.cpp"],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    init_rc: ["init.peridot-charging.rc"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
