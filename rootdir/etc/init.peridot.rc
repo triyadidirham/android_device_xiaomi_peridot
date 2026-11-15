@@ -275,3 +275,5 @@ on post-fs-data
     chmod 0664 /sys/class/qcom-battery/bypass_charging_enable
     chown system system /sys/class/qcom-battery/bypass_charging_mode
     chmod 0664 /sys/class/qcom-battery/bypass_charging_mode
+    chown system system /sys/class/power_supply/battery/constant_charge_current
+    chmod 0664 /sys/class/power_supply/battery/constant_charge_current
