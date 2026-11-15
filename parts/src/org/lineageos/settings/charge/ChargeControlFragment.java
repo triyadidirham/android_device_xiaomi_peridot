@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -43,7 +42,7 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
 
         Preference systemControl = findPreference(SYSTEM_CHARGE_CONTROL);
         systemControl.setOnPreferenceClickListener(preference -> {
-            startActivity(new Intent(Settings.ACTION_BATTERY_SETTINGS));
+            startActivity(new Intent(Intent.ACTION_POWER_USAGE_SUMMARY));
             return true;
         });
 
