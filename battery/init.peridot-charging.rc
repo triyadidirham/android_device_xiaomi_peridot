@@ -1,0 +1,5 @@
+service vendor.peridot-charging /vendor/bin/peridot-charging
+    class main
+    user system
+    group system
+    seclabel u:r:charging:s0
