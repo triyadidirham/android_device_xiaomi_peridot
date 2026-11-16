@@ -26,6 +26,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import org.lineageos.settings.charge.ChargeControlActivity;
 import org.lineageos.settings.refreshrate.RefreshActivity;
 import org.lineageos.settings.saturation.SaturationActivity;
 
@@ -33,6 +34,8 @@ public class TileEntryActivity extends Activity {
     private static final String TAG = "TileEntryActivity";
     private static final String REFRESH_TILE = "org.lineageos.settings.refreshrate.RefreshTileService";
     private static final String SATURATION_TILE = "org.lineageos.settings.saturation.SaturationTileService";
+    private static final String BYPASS_CHARGING_TILE =
+            "org.lineageos.settings.charge.BypassChargingTileService";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,6 +54,8 @@ public class TileEntryActivity extends Activity {
             intent = new Intent(this, RefreshActivity.class);
         } else if (SATURATION_TILE.equals(sourceClassName)) {
             intent = new Intent(this, SaturationActivity.class);
+        } else if (BYPASS_CHARGING_TILE.equals(sourceClassName)) {
+            intent = new Intent(this, ChargeControlActivity.class);
         } else {
             Log.e(TAG, "Unknown tile: " + sourceClassName);
             finish();
