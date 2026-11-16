@@ -252,27 +252,52 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.keystore.app_attest_key.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.keystore.app_attest_key.xml
 
 
-# XiaomiParts
+# Optional XiaomiParts
+ifeq ($(PERIDOT_INCLUDE_XIAOMI_PARTS),true)
 PRODUCT_PACKAGES += \
     XiaomiParts
+endif
 
-# Charging speed governor and Lineage Health
+# Optional charging speed governor
+ifeq ($(PERIDOT_INCLUDE_CHARGING_DAEMON),true)
 PRODUCT_PACKAGES += \
-    peridot-charging \
+    peridot-charging
+endif
+
+# Optional Lineage Health integration
+ifeq ($(PERIDOT_INCLUDE_LINEAGE_HEALTH),true)
+PRODUCT_PACKAGES += \
     vendor.lineage.health-service.default
 
+ifeq ($(PERIDOT_ENABLE_LINEAGE_HEALTH_CHARGING_CONTROL),true)
 $(call soong_config_set,lineage_health,charging_control_charging_path,/sys/class/qcom-battery/bypass_charging_enable)
 $(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
 $(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
 $(call soong_config_set,lineage_health,charging_control_limit_start_path,/sys/class/power_supply/battery/charge_control_start_threshold)
 $(call soong_config_set,lineage_health,charging_control_limit_stop_path,/sys/class/power_supply/battery/charge_control_end_threshold)
-$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,true)
 $(call soong_config_set_bool,lineage_health,charging_control_supports_limit,true)
 $(call soong_config_set_bool,lineage_health,charging_control_supports_toggle,true)
+ifeq ($(PERIDOT_ENABLE_LINEAGE_HEALTH_BYPASS),true)
+$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,true)
+else
+$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
+endif
+else
+$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
+$(call soong_config_set_bool,lineage_health,charging_control_supports_limit,false)
+$(call soong_config_set_bool,lineage_health,charging_control_supports_toggle,false)
+endif
+
 $(call soong_config_set,lineage_health,fast_charge_node,/sys/class/qcom-battery/fastcharge_enable)
 $(call soong_config_set,lineage_health,fast_charge_value_none,0)
 $(call soong_config_set,lineage_health,fast_charge_value_fast_charge,1)
 $(call soong_config_set,lineage_health,fast_charge_value_super_fast_charge,2)
+endif
+
+# Optional external GameBar
+ifeq ($(PERIDOT_INCLUDE_GAMEBAR),true)
+$(call inherit-product-if-exists, packages/apps/GameBar/gamebar.mk)
+endif
 
 # Media
 PRODUCT_COPY_FILES += \
@@ -500,5 +525,7 @@ PRODUCT_COPY_FILES += \
 # Vendor
 $(call inherit-product, vendor/xiaomi/peridot/peridot-vendor.mk)
 
-# Vendor MiuiCamera
+# Optional vendor MiuiCamera
+ifeq ($(PERIDOT_INCLUDE_MIUI_CAMERA),true)
 $(call inherit-product-if-exists, device/xiaomi/peridot-miuicamera/device.mk)
+endif

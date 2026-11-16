@@ -11,14 +11,22 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 # Inherit some common Lineage stuff.
 WITH_GAPPS := false
 
+# Peridot optional feature profile
+PERIDOT_INCLUDE_XIAOMI_PARTS := true
+PERIDOT_INCLUDE_CHARGING_DAEMON := true
+PERIDOT_INCLUDE_LINEAGE_HEALTH := true
+PERIDOT_ENABLE_LINEAGE_HEALTH_CHARGING_CONTROL := true
+PERIDOT_ENABLE_LINEAGE_HEALTH_BYPASS := true
+PERIDOT_INCLUDE_MIUI_CAMERA := true
+PERIDOT_INCLUDE_GAMEBAR := true
+PERIDOT_INCLUDE_GAMESPACE := true
+include device/xiaomi/peridot/config/peridot_features.mk
+
 $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 
 # Inherit from peridot device
 $(call inherit-product, device/xiaomi/peridot/device.mk)
 
-
-# Include both Infinity GameSpace and the peridot external GameBar.
-$(call inherit-product, packages/apps/GameBar/gamebar.mk)
 
 # Infinity baseline flags (device stack remains pure crDroid)
 TARGET_BOOT_ANIMATION_RES := 1080
