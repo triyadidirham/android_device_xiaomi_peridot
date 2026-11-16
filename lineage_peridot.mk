@@ -8,6 +8,17 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit_only.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
+# Peridot optional feature profile. Preserve the existing Lineage product.
+PERIDOT_INCLUDE_XIAOMI_PARTS := true
+PERIDOT_INCLUDE_CHARGING_DAEMON := true
+PERIDOT_INCLUDE_LINEAGE_HEALTH := true
+PERIDOT_ENABLE_LINEAGE_HEALTH_CHARGING_CONTROL := true
+PERIDOT_ENABLE_LINEAGE_HEALTH_BYPASS := true
+PERIDOT_INCLUDE_MIUI_CAMERA := true
+PERIDOT_INCLUDE_GAMEBAR := false
+PERIDOT_INCLUDE_GAMESPACE := false
+include device/xiaomi/peridot/config/peridot_features.mk
+
 # Inherit some common Lineage stuff.
 $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 
