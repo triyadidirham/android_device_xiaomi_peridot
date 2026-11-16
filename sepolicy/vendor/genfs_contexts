@@ -32,3 +32,4 @@ genfscon sysfs /devices/platform/goodix_ts.0/wakeup u:object_r:sysfs_wakeup:s0
 genfscon proc /sys/walt u:object_r:proc_walt:s0
 genfscon sysfs /class/qcom-battery/bypass_charging_enable u:object_r:vendor_sysfs_battery_supply:s0
 genfscon sysfs /class/qcom-battery/bypass_charging_mode u:object_r:vendor_sysfs_battery_supply:s0
+genfscon sysfs /class/power_supply/battery/constant_charge_current u:object_r:vendor_sysfs_battery_supply:s0
