@@ -8,6 +8,8 @@
 #include <android-base/properties.h>
 #include <android/log.h>
 
+#include "ClampRecoveryPolicy.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
@@ -39,6 +41,7 @@ constexpr long kRequestedCurrentUa[kModeCount] = {
     6000000L,
     10000000L,
 };
+constexpr long kRecoveryTempDeciC = 390;
 constexpr long kWarmTempDeciC = 420;
 constexpr long kHotTempDeciC = 450;
 constexpr int kTickSeconds = 2;
@@ -91,27 +94,30 @@ class CachedNode {
   public:
     explicit CachedNode(const char* path) : path_(path) {}
 
-    void set(long target) {
+    bool set(long target, long* readback, bool force = false) {
         long current;
         if (readLong(path_, &current)) {
             if (current == target ||
-                    (target == lastTarget_ && current == lastReadback_)) {
-                return;
+                    (!force && target == lastTarget_ && current == lastReadback_)) {
+                *readback = current;
+                return true;
             }
         }
         if (!writeLong(path_, target)) {
             LOGW("write %ld to %s failed: %s", target, path_, strerror(errno));
-            return;
+            return false;
         }
-        long readback = target;
-        readLong(path_, &readback);
+        long observed = target;
+        readLong(path_, &observed);
         lastTarget_ = target;
-        lastReadback_ = readback;
-        if (readback != target) {
-            LOGI("%s requested %ld, firmware reports %ld", path_, target, readback);
+        lastReadback_ = observed;
+        *readback = observed;
+        if (observed != target) {
+            LOGI("%s requested %ld, firmware reports %ld", path_, target, observed);
         } else {
             LOGI("%s = %ld", path_, target);
         }
+        return true;
     }
 
   private:
@@ -157,7 +163,8 @@ class ChargingGovernor {
   public:
     ChargingGovernor()
         : desiredMode_(sanitizeMode(android::base::GetIntProperty(kModeProperty, 1))),
-          currentNode_(kCurrentNode) {}
+          currentNode_(kCurrentNode),
+          recoveryPolicy_(kRecoveryTempDeciC) {}
 
     void tick() {
         bool bypass = bypassActive();
@@ -166,7 +173,9 @@ class ChargingGovernor {
                 LOGI("bypass active; releasing charging-speed current request");
             }
             wasBypass_ = true;
-            currentNode_.set(-1);
+            long ignored;
+            currentNode_.set(-1, &ignored);
+            recoveryPolicy_.reset();
             return;
         }
         if (wasBypass_) {
@@ -183,7 +192,9 @@ class ChargingGovernor {
             }
             wasCharging_ = false;
             reapplyCounter_ = 0;
-            currentNode_.set(-1);
+            long ignored;
+            currentNode_.set(-1, &ignored);
+            recoveryPolicy_.reset();
             return;
         }
 
@@ -201,18 +212,30 @@ class ChargingGovernor {
         }
 
         long target = safeRequestedCurrent(desiredMode_);
-        currentNode_.set(target);
+        long temp;
+        bool hasTemp = readLong(kTempNode, &temp);
+        bool forceRetry = hasTemp && recoveryPolicy_.shouldForceRetry(target, temp);
+        if (forceRetry) {
+            LOGI("battery cooled to %.1fC; retrying clamped target %lduA once",
+                    temp / 10.0, target);
+        }
+
+        long readback = LONG_MIN;
+        if (currentNode_.set(target, &readback, forceRetry)) {
+            recoveryPolicy_.recordReadback(target, readback);
+        }
 
         long currentNow;
-        long temp;
-        if (readLong(kCurrentNowNode, &currentNow) && readLong(kTempNode, &temp)) {
-            LOGI("mode=%d target=%lduA current_now=%lduA temp=%.1fC",
-                    desiredMode_, target, currentNow, temp / 10.0);
+        if (readLong(kCurrentNowNode, &currentNow) && hasTemp) {
+            LOGI("mode=%d target=%lduA readback=%lduA current_now=%lduA temp=%.1fC",
+                    desiredMode_, target, readback, currentNow, temp / 10.0);
         }
     }
 
     void release() {
-        currentNode_.set(-1);
+        long ignored;
+        currentNode_.set(-1, &ignored);
+        recoveryPolicy_.reset();
     }
 
   private:
@@ -243,6 +266,7 @@ class ChargingGovernor {
 
     int desiredMode_;
     CachedNode currentNode_;
+    peridot_charging::ClampRecoveryPolicy recoveryPolicy_;
     bool restoredMode_ = false;
     bool wasCharging_ = false;
     bool wasBypass_ = false;
