@@ -91,13 +91,13 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
 
         if (BYPASS_CHARGING.equals(preference.getKey())) {
             boolean enabled = (Boolean) newValue;
-            if (enabled && !BypassChargingUtils.isUsbOnline()) {
+            if (enabled && !BypassChargingUtils.isWiredPowerConnected(requireContext())) {
                 refreshState();
                 return false;
             }
             mBypassPreference.setEnabled(false);
             mBypassPreference.setSummary(R.string.bypass_charging_summary_pending);
-            if (!BypassChargingUtils.requestState(enabled)) {
+            if (!BypassChargingUtils.requestState(requireContext(), enabled)) {
                 refreshState();
                 return false;
             }
@@ -133,7 +133,7 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
                 mBypassPreference.setEnabled(true);
                 break;
             case OFF:
-                if (BypassChargingUtils.isUsbOnline()) {
+                if (BypassChargingUtils.isWiredPowerConnected(requireContext())) {
                     mBypassPreference.setSummary(R.string.bypass_charging_summary_off);
                     mBypassPreference.setEnabled(true);
                 } else {
