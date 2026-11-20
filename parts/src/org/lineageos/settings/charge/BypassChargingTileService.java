@@ -16,6 +16,10 @@
 
 package org.lineageos.settings.charge;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,10 +45,19 @@ public class BypassChargingTileService extends TileService {
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private long mPollDeadline;
+    private final BroadcastReceiver mPowerReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateTile(BypassChargingUtils.readState());
+        }
+    };
 
     @Override
     public void onStartListening() {
         super.onStartListening();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        registerReceiver(mPowerReceiver, filter);
         BypassChargingUtils.State state = BypassChargingUtils.readState();
         updateTile(state);
         if (BypassChargingUtils.isPending(state)) {
@@ -55,6 +68,7 @@ public class BypassChargingTileService extends TileService {
 
     @Override
     public void onStopListening() {
+        unregisterReceiver(mPowerReceiver);
         super.onStopListening();
         mHandler.removeCallbacksAndMessages(null);
     }
@@ -70,6 +84,10 @@ public class BypassChargingTileService extends TileService {
         }
 
         boolean requestOn = !BypassChargingUtils.isOn(current);
+        if (requestOn && !BypassChargingUtils.isUsbOnline()) {
+            updateTile(current);
+            return;
+        }
         if (!BypassChargingUtils.requestState(requestOn)) {
             Log.w(TAG, "bypass_charging_enable write rejected");
             updateTile(BypassChargingUtils.readState());
@@ -108,6 +126,13 @@ public class BypassChargingTileService extends TileService {
 
         tile.setLabel(getString(R.string.bypass_charging_tile_label));
         tile.setIcon(Icon.createWithResource(this, R.drawable.ic_bypass_charging));
+
+        if (state == BypassChargingUtils.State.OFF && !BypassChargingUtils.isUsbOnline()) {
+            tile.setState(Tile.STATE_UNAVAILABLE);
+            tile.setSubtitle(getString(R.string.bypass_charging_summary_unplugged));
+            tile.updateTile();
+            return;
+        }
 
         switch (state) {
             case ON:

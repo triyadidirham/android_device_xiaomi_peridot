@@ -41,6 +41,20 @@ public final class BypassChargingUtils {
     private static final String KEY_MODE = "mode";
 
     private static final String NODE = "/sys/class/qcom-battery/bypass_charging_enable";
+    private static final String USB_ONLINE_NODE = "/sys/class/power_supply/usb/online";
+    private static final String USB_2_ONLINE_NODE = "/sys/class/power_supply/usb-2/online";
+
+    private static boolean isOnline(String path) {
+        String value = FileUtils.readOneLine(path);
+        return value != null && "1".equals(value.trim());
+    }
+
+    /** Only a wired charger can power bypass; missing/read-error fails closed. */
+    public static boolean isUsbOnline() {
+        return isOnline(USB_ONLINE_NODE)
+                || (FileUtils.fileExists(USB_2_ONLINE_NODE) && isOnline(USB_2_ONLINE_NODE));
+    }
+
     // Lists every mode with the active one bracketed, e.g. "[navigation] tgame nolimit".
     // Write a mode name to select it; it is applied on the next enable.
     private static final String MODE_NODE = "/sys/class/qcom-battery/bypass_charging_mode";
@@ -85,6 +99,11 @@ public final class BypassChargingUtils {
      * {@link #readState()} until it's no longer PENDING_*.
      */
     public static boolean requestState(boolean enable) {
+        // UI check complements the kernel guard; a concurrent unplug still
+        // fails closed in the kernel. Disabling remains possible while offline.
+        if (enable && !isUsbOnline()) {
+            return false;
+        }
         return FileUtils.writeLine(NODE, enable ? "1" : "0");
     }
 
