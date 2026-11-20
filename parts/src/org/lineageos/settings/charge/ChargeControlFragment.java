@@ -5,7 +5,10 @@
  */
 package org.lineageos.settings.charge;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,6 +38,12 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
     private SwitchPreferenceCompat mBypassPreference;
     private ListPreference mModePreference;
     private long mPollDeadline;
+    private final BroadcastReceiver mPowerReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            refreshState();
+        }
+    };
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -55,11 +64,15 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
     @Override
     public void onResume() {
         super.onResume();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        requireContext().registerReceiver(mPowerReceiver, filter);
         refreshState();
     }
 
     @Override
     public void onPause() {
+        requireContext().unregisterReceiver(mPowerReceiver);
         super.onPause();
         mHandler.removeCallbacksAndMessages(null);
     }
@@ -78,9 +91,13 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
 
         if (BYPASS_CHARGING.equals(preference.getKey())) {
             boolean enabled = (Boolean) newValue;
+            if (enabled && !BypassChargingUtils.isWiredPowerConnected(requireContext())) {
+                refreshState();
+                return false;
+            }
             mBypassPreference.setEnabled(false);
             mBypassPreference.setSummary(R.string.bypass_charging_summary_pending);
-            if (!BypassChargingUtils.requestState(enabled)) {
+            if (!BypassChargingUtils.requestState(requireContext(), enabled)) {
                 refreshState();
                 return false;
             }
@@ -116,8 +133,13 @@ public class ChargeControlFragment extends SettingsBasePreferenceFragment
                 mBypassPreference.setEnabled(true);
                 break;
             case OFF:
-                mBypassPreference.setSummary(R.string.bypass_charging_summary_off);
-                mBypassPreference.setEnabled(true);
+                if (BypassChargingUtils.isWiredPowerConnected(requireContext())) {
+                    mBypassPreference.setSummary(R.string.bypass_charging_summary_off);
+                    mBypassPreference.setEnabled(true);
+                } else {
+                    mBypassPreference.setSummary(R.string.bypass_charging_summary_unplugged);
+                    mBypassPreference.setEnabled(false);
+                }
                 break;
             case PENDING_ON:
             case PENDING_OFF:

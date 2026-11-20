@@ -17,7 +17,10 @@
 package org.lineageos.settings.charge;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.BatteryManager;
 import android.util.Log;
 
 import org.lineageos.settings.utils.FileUtils;
@@ -26,11 +29,12 @@ import org.lineageos.settings.utils.FileUtils;
  * Talks to /sys/class/qcom-battery/bypass_charging_enable. The kernel side
  * runs the actual smart_chg/sport_mode write sequence asynchronously (~5s,
  * disables fastcharge first, restores it on revert) — see the ABI doc for
- * that node. This class only ever does plain file I/O: the app runs as
- * android.uid.system and is privileged, so no root shell is needed, same
- * as every other node this app already talks to via FileUtils.
+ * that node. This class reads the system battery broadcast for wired power
+ * and uses plain sysfs I/O only for bypass controls. The app runs as
+ * android.uid.system with the dedicated parts_app SELinux domain, so no
+ * root shell is needed by the user.
  *
- * Shared by ChargeSettingsFragment (the switch on the charging screen) and
+ * Shared by ChargeControlFragment (the switch on the charging screen) and
  * BypassChargingTileService (the QS tile), so both read the exact same
  * state and neither can drift out of sync with the other.
  */
@@ -41,6 +45,19 @@ public final class BypassChargingUtils {
     private static final String KEY_MODE = "mode";
 
     private static final String NODE = "/sys/class/qcom-battery/bypass_charging_enable";
+
+    /** Use Android's battery service: parts_app cannot read usb/online sysfs. */
+    public static boolean isWiredPowerConnected(Context context) {
+        Intent battery = context.registerReceiver(null,
+                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery == null) {
+            return false;
+        }
+        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+        return (plugged & (BatteryManager.BATTERY_PLUGGED_AC
+                | BatteryManager.BATTERY_PLUGGED_USB)) != 0;
+    }
+
     // Lists every mode with the active one bracketed, e.g. "[navigation] tgame nolimit".
     // Write a mode name to select it; it is applied on the next enable.
     private static final String MODE_NODE = "/sys/class/qcom-battery/bypass_charging_mode";
@@ -84,7 +101,12 @@ public final class BypassChargingUtils {
      * transition is complete just because this returns true; poll
      * {@link #readState()} until it's no longer PENDING_*.
      */
-    public static boolean requestState(boolean enable) {
+    public static boolean requestState(Context context, boolean enable) {
+        // Android battery state is only a UI hint; the kernel performs the
+        // authoritative fresh USB check and rejects unplug races.
+        if (enable && !isWiredPowerConnected(context)) {
+            return false;
+        }
         return FileUtils.writeLine(NODE, enable ? "1" : "0");
     }
 
