@@ -84,11 +84,11 @@ public class BypassChargingTileService extends TileService {
         }
 
         boolean requestOn = !BypassChargingUtils.isOn(current);
-        if (requestOn && !BypassChargingUtils.isUsbOnline()) {
+        if (requestOn && !BypassChargingUtils.isWiredPowerConnected(this)) {
             updateTile(current);
             return;
         }
-        if (!BypassChargingUtils.requestState(requestOn)) {
+        if (!BypassChargingUtils.requestState(this, requestOn)) {
             Log.w(TAG, "bypass_charging_enable write rejected");
             updateTile(BypassChargingUtils.readState());
             return;
@@ -127,7 +127,8 @@ public class BypassChargingTileService extends TileService {
         tile.setLabel(getString(R.string.bypass_charging_tile_label));
         tile.setIcon(Icon.createWithResource(this, R.drawable.ic_bypass_charging));
 
-        if (state == BypassChargingUtils.State.OFF && !BypassChargingUtils.isUsbOnline()) {
+        if (state == BypassChargingUtils.State.OFF
+                && !BypassChargingUtils.isWiredPowerConnected(this)) {
             tile.setState(Tile.STATE_UNAVAILABLE);
             tile.setSubtitle(getString(R.string.bypass_charging_summary_unplugged));
             tile.updateTile();
