@@ -24,6 +24,10 @@ include device/xiaomi/peridot/config/peridot_features.mk
 
 $(call inherit-product, vendor/infinity/config/common_full_phone.mk)
 
+# LineageOS calendar for Infinity X peridot.
+PRODUCT_PACKAGES += \
+    Etar
+
 # Inherit from peridot device
 $(call inherit-product, device/xiaomi/peridot/device.mk)
 
